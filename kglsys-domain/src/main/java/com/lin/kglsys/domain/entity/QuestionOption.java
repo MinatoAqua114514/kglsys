@@ -1,0 +1,26 @@
+package com.lin.kglsys.domain.entity;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "question_options")
+public class QuestionOption {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_id", nullable = false)
+    private AssessmentQuestion question;
+
+    @Column(name = "option_text", nullable = false, length = 512)
+    private String optionText;
+
+    @Column(nullable = false)
+    private Integer sequence;
+}

@@ -1,0 +1,114 @@
+# ===================================================================
+# MASTER CONFIGURATION FILE (application.yml)
+# ===================================================================
+# This section contains configurations common to all environments
+# and activates the 'dev' profile by default.
+# -------------------------------------------------------------------
+server:
+  port: 8080 # 应用服务端口
+
+spring:
+  application:
+    name: kglsys # 应用名称
+  profiles:
+    active: dev # 默认激活开发环境配置
+
+# ===================================================================
+# CUSTOM APPLICATION PROPERTIES
+# ===================================================================
+# Namespace for all custom properties.
+# These can be mapped to a @ConfigurationProperties class.
+# -------------------------------------------------------------------
+app:
+  # JWT相关配置
+  jwt:
+    # 密钥：在生产环境中，必须使用环境变量或配置中心来管理这个值，绝不能硬编码在此处！
+    # 这是一个用于开发的示例密钥，请务必替换。
+    secret: "bXktc2VjcmV0LWtleS1mb3Itand0LXNwcmluZy1ib290LTMtZm9yLWtnbHN5cy1wcm9qZWN0Cg=="
+    # Token有效期（毫秒），例如：24小时
+    expiration-ms: 86400000
+
+  # RabbitMQ队列名称配置
+  rabbitmq:
+    tasks-queue: "code_tasks_queue"     # 发送判题任务的队列
+    results-queue: "code_results_queue" # 接收判题结果的队列
+
+  # WebSocket端点配置
+  websocket:
+    endpoint: "/api/ws" # WebSocket连接端点
+
+---
+# ===================================================================
+# DEVELOPMENT PROFILE (application-dev.yml)
+# ===================================================================
+# Configurations specific to the 'dev' environment.
+# Activated by 'spring.profiles.active=dev' in the master section.
+# -------------------------------------------------------------------
+spring:
+  config:
+    activate:
+      on-profile: dev # 标识此部分为dev环境配置
+
+  # ===============================================================
+  # DATABASE (MySQL)
+  # ===============================================================
+  datasource:
+    url: "jdbc:mysql://localhost:3306/kglsys1?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai"
+    username: root
+    password: "111111"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # ===============================================================
+  # JPA / HIBERNATE
+  # ===============================================================
+  jpa:
+    hibernate:
+      # ddl-auto:
+      #   - none: 不做任何操作 (生产环境推荐)
+      #   - validate: 验证schema是否匹配
+      #   - update: 更新schema (开发环境常用)
+      #   - create: 每次启动时删除并重新创建schema
+      #   - create-drop: 启动时创建，关闭时删除 (测试常用)
+      ddl-auto: validate
+    # 在控制台显示执行的SQL语句，便于开发调试
+    show-sql: true
+    properties:
+      hibernate:
+        # 格式化显示的SQL语句
+        format_sql: true
+        # 指定MySQL 8的方言
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # ===============================================================
+  # CACHE (Redis)
+  # ===============================================================
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      # 如果你的Redis没有密码，请注释掉下面这行
+      # password: your-redis-password
+
+  # ===============================================================
+  # MESSAGE QUEUE (RabbitMQ)
+  # ===============================================================
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    # virtual-host: / # 默认是'/'，通常无需显式配置
+
+# ===================================================================
+# LOGGING
+# ===================================================================
+logging:
+  level:
+    # 设置根日志级别
+    root: INFO
+    # 为特定包设置更详细的日志级别，便于调试
+    com.lin.kglsys: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG # 仅显示Hibernate执行的SQL
+    org.hibernate.type.descriptor.sql: TRACE # 显示SQL的参数绑定
