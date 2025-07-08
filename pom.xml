@@ -58,6 +58,9 @@
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+        <persistence-api.version>3.2.0</persistence-api.version>
+        <servlet-api.version>6.1.0</servlet-api.version>
+        <spring-security-core.version>6.5.1</spring-security-core.version>
     </properties>
 
     <!-- 统一依赖版本管理，子模块按需引入，无需指定版本号 -->

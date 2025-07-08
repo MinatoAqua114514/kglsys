@@ -78,16 +78,16 @@ public class ApiResult<T> implements Serializable {
     }
 
     /**
-     *  失败响应 - 使用预定义ResultCode并附带消息
-     */
-    public static <T> ApiResult<T> failure(ResultCode resultCode, String message) {
-        return new ApiResult<>(resultCode, message);
-    }
-
-    /**
      * 失败响应 - 自定义消息
      */
     public static <T> ApiResult<T> failure(String message) {
         return new ApiResult<>(ResultCode.FAILURE.getCode(), message, null);
+    }
+
+    /**
+     * 失败响应 - 使用预定义ResultCode并覆盖其默认消息
+     */
+    public static <T> ApiResult<T> failure(ResultCode resultCode, String message) {
+        return new ApiResult<>(resultCode, message);
     }
 }

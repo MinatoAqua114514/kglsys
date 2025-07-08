@@ -1,5 +1,6 @@
 package com.lin.kglsys.common.constant;
 
+import lombok.Data;
 import lombok.Getter;
 
 /**
@@ -31,7 +32,13 @@ public enum ResultCode {
     PROBLEM_NOT_FOUND(1003, "编程题目不存在"),
     SUBMISSION_NOT_FOUND(1004, "提交记录不存在"),
     CODE_SUBMISSION_FAILED(1005, "代码提交失败，请稍后重试"),
-    EXTERNAL_SERVICE_ERROR(1006, "外部服务调用异常");
+    EXTERNAL_SERVICE_ERROR(1006, "外部服务调用异常"),
+
+    // --- 外部服务错误 (5xx) ---
+    SERVICE_UNAVAILABLE(503, "外部服务暂时不可用，请稍后重试"),
+    DATABASE_ERROR(500, "数据库服务异常"),
+    CACHE_SERVICE_ERROR(503, "缓存服务连接异常"), // [新增] 专门用于Redis等缓存服务
+    MQ_SERVICE_ERROR(503, "消息队列服务连接异常"); // [新增] 专门用于RabbitMQ等消息服务
 
 
     private final int code;

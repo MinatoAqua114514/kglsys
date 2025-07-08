@@ -4,11 +4,13 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -56,15 +58,21 @@ public class User implements UserDetails {
     )
     private Set<Role> roles;
 
-    // --- UserDetails 接口实现 ---
+    /**
+     * [修正] 返回用户的权限集合。
+     * Spring Security需要一个 "ROLE_" 前缀来识别角色。
+     * 我们将从用户的 roles 集合中动态构建权限列表。
+     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // 此处将在 security 模块中实现，返回角色和权限集合
-        return null; 
+        // 将 Role 集合转换为 GrantedAuthority 集合
+        return this.roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public String getUsername() {
-        return this.email; // 使用 email 作为用户名
+        return this.email;
     }
 }

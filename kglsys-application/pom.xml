@@ -26,11 +26,25 @@
             <groupId>com.lin</groupId>
             <artifactId>kglsys-infra</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.lin</groupId>
+            <artifactId>kglsys-security</artifactId>
+        </dependency>
 
         <!-- MapStruct for DTO-Entity conversion -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>${servlet-api.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

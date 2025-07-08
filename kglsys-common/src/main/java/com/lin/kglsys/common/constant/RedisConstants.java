@@ -37,4 +37,9 @@ public final class RedisConstants {
      * 存储结构: ZSet (score为匹配度，value为岗位ID)
      */
     public static final String JOB_RECOMMENDATION_CACHE_KEY = PROJECT_PREFIX + "recommend:job:";
+
+    /**
+     * 同一个IP地址，在60秒内只能请求一次验证码接口。
+     */
+    public static final String EMAIL_VERIFY_IP_LIMIT = PROJECT_PREFIX + "verify:ip:limit:";
 }

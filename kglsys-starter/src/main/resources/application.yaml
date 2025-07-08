@@ -1,5 +1,5 @@
 # ===================================================================
-# MASTER CONFIGURATION FILE (application.yml)
+# MASTER CONFIGURATION FILE (application.yaml)
 # ===================================================================
 # This section contains configurations common to all environments
 # and activates the 'dev' profile by default.
@@ -24,7 +24,7 @@ app:
   jwt:
     # 密钥：在生产环境中，必须使用环境变量或配置中心来管理这个值，绝不能硬编码在此处！
     # 这是一个用于开发的示例密钥，请务必替换。
-    secret: "bXktc2VjcmV0LWtleS1mb3Itand0LXNwcmluZy1ib290LTMtZm9yLWtnbHN5cy1wcm9qZWN0Cg=="
+    secret: "N8ejjvh7u+WRZrV1u8AB2Q2MSsYwBQzX0BvnHzdyDw0zN5jzEqH6DbSEeZ+pCFW3KFxrYipzL9cJzXn5rcr+Sg=="
     # Token有效期（毫秒），例如：24小时
     expiration-ms: 86400000
 
@@ -32,6 +32,7 @@ app:
   rabbitmq:
     tasks-queue: "code_tasks_queue"     # 发送判题任务的队列
     results-queue: "code_results_queue" # 接收判题结果的队列
+    email-queue: "email-verify-code"    # 邮箱验证码发送队列
 
   # WebSocket端点配置
   websocket:
@@ -76,8 +77,7 @@ spring:
       hibernate:
         # 格式化显示的SQL语句
         format_sql: true
-        # 指定MySQL 8的方言
-        dialect: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
 
   # ===============================================================
   # CACHE (Redis)
@@ -100,15 +100,22 @@ spring:
     password: guest
     # virtual-host: / # 默认是'/'，通常无需显式配置
 
-# ===================================================================
-# LOGGING
-# ===================================================================
-logging:
-  level:
-    # 设置根日志级别
-    root: INFO
-    # 为特定包设置更详细的日志级别，便于调试
-    com.lin.kglsys: DEBUG
-    org.springframework.web: INFO
-    org.hibernate.SQL: DEBUG # 仅显示Hibernate执行的SQL
-    org.hibernate.type.descriptor.sql: TRACE # 显示SQL的参数绑定
+  # ===============================================================
+  # Mail Sender (Spring-Mail)
+  # ===============================================================
+  mail:
+    username: loveaquaonline@qq.com
+    password: kyszoprbxmzzbaaa
+    host: smtp.qq.com
+    port: 465
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            enable: true
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory

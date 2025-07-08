@@ -1,4 +1,4 @@
-package com.lin.kglsys.common.handler;
+package com.lin.kglsys.web.handler;
 
 import com.lin.kglsys.common.constant.ResultCode;
 import com.lin.kglsys.common.exception.BaseException;
@@ -10,6 +10,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.amqp.AmqpException;
 
 import java.util.stream.Collectors;
 
@@ -34,7 +36,7 @@ public class GlobalExceptionHandler {
      * 处理@Valid注解校验失败的异常
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST) // 参数错误，返回400
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResult<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         BindingResult bindingResult = ex.getBindingResult();
         String errorMessage = bindingResult.getFieldErrors().stream()
@@ -52,5 +54,27 @@ public class GlobalExceptionHandler {
     public ApiResult<?> handleAllUncaughtException(Exception ex) {
         log.error("未捕获的系统异常", ex);
         return ApiResult.failure(ResultCode.SYSTEM_ERROR);
+    }
+
+    /**
+     * 处理Redis连接失败异常
+     * 这个处理器应该放在通用 DataAccessException 处理器之前
+     */
+    @ExceptionHandler(RedisConnectionFailureException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE) // 返回503 Service Unavailable
+    public ApiResult<?> handleRedisConnectionFailureException(RedisConnectionFailureException ex) {
+        log.error("缓存服务连接失败: {}", ex.getMessage());
+        return ApiResult.failure(ResultCode.CACHE_SERVICE_ERROR);
+    }
+
+    /**
+     * 处理所有Spring AMQP相关的运行时异常
+     * AmqpException是所有AMQP相关异常的根类，可以统一捕获。
+     */
+    @ExceptionHandler(AmqpException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ApiResult<?> handleAmqpException(AmqpException ex) {
+        log.error("消息队列服务异常: {}", ex.getMessage());
+        return ApiResult.failure(ResultCode.MQ_SERVICE_ERROR);
     }
 }
