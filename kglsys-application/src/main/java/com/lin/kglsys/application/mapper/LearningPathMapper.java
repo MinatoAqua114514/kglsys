@@ -24,6 +24,8 @@ public interface LearningPathMapper {
     @Mapping(target = "nodes", ignore = true) // [修正] 忽略 'nodes' 属性的映射
     LearningPathDTO toLearningPathDTO(LearningPath learningPath);
 
+    // 明确忽略 'status' 属性，因为它由服务层手动填充
+    @Mapping(target = "status", ignore = true)
     LearningPathNodeDTO toLearningPathNodeDTO(LearningPathNode node);
 
     List<LearningPathNodeDTO> toLearningPathNodeDTOList(List<LearningPathNode> nodes);

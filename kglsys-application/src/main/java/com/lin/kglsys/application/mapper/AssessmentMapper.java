@@ -5,7 +5,6 @@ import com.lin.kglsys.domain.entity.QuestionOption;
 import com.lin.kglsys.dto.response.OptionDTO;
 import com.lin.kglsys.dto.response.QuestionDTO;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;

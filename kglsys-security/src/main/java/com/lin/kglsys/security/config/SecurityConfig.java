@@ -57,6 +57,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 允许对注册、登录、忘记密码接口的匿名访问
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        // 允许对WebSocket端点的匿名访问
+                        .requestMatchers("/ws/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // 7. 将 JWT 认证过滤器添加到 UsernamePasswordAuthenticationFilter 之前

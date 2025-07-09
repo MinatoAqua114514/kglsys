@@ -52,7 +52,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <mysql-connector.version>8.0.33</mysql-connector.version>
+        <mysql-connector.version>9.3.0</mysql-connector.version>
         <jjwt.version>0.12.5</jjwt.version>
         <lombok.version>1.18.30</lombok.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
@@ -61,6 +61,8 @@
         <persistence-api.version>3.2.0</persistence-api.version>
         <servlet-api.version>6.1.0</servlet-api.version>
         <spring-security-core.version>6.5.1</spring-security-core.version>
+        <jackson-databind.version>2.19.1</jackson-databind.version>
+        <h2.version>2.3.232</h2.version>
     </properties>
 
     <!-- 统一依赖版本管理，子模块按需引入，无需指定版本号 -->
@@ -106,8 +108,8 @@
             <!-- 外部依赖 -->
             <!-- MySQL -->
             <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
                 <version>${mysql-connector.version}</version>
                 <scope>runtime</scope>
             </dependency>

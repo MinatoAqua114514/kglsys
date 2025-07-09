@@ -1,6 +1,5 @@
 package com.lin.kglsys.infra.listener;
 
-import com.lin.kglsys.common.constant.MailConstants;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;

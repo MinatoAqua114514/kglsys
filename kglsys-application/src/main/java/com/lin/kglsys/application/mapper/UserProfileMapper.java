@@ -33,5 +33,10 @@ public interface UserProfileMapper {
      * @param request DTO
      * @param profile 待更新的实体
      */
+    // 明确忽略不需要从DTO更新的属性，以消除警告
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     void updateEntityFromDto(UpdateUserProfileRequest request, @MappingTarget UserProfile profile);
 }

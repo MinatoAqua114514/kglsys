@@ -1,6 +1,5 @@
 package com.lin.kglsys.common.constant;
 
-import lombok.Data;
 import lombok.Getter;
 
 /**
