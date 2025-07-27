@@ -38,6 +38,10 @@ app:
   websocket:
     endpoint: "/api/ws" # WebSocket连接端点
 
+  # 前端基础URL配置
+  frontend:
+    base-url: http://localhost:5173 # 这是您前端开发服务器的地址
+
 ---
 # ===================================================================
 # DEVELOPMENT PROFILE (application-dev.yml)

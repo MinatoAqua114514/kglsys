@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.amqp.AmqpException;
 
@@ -21,6 +22,18 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * [新增] 专门处理登录时用户名或密码错误的异常
+     * BadCredentialsException 是 Spring Security 在认证失败时抛出的标准异常。
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED) // 返回 401 状态码
+    public ApiResult<?> handleBadCredentialsException(BadCredentialsException ex) {
+        log.warn("认证失败: {}", ex.getMessage());
+        // 返回我们在 ResultCode 中定义的 AUTHENTICATION_FAILED
+        return ApiResult.failure(ResultCode.AUTHENTICATION_FAILED, ex.getMessage());
+    }
 
     /**
      * 处理自定义的业务异常

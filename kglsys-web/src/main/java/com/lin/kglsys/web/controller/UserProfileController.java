@@ -35,4 +35,6 @@ public class UserProfileController {
         UserProfileResponse updatedProfile = userProfileService.updateUserProfile(request);
         return ApiResult.success(updatedProfile);
     }
+
+    // TODO 在 Profile.vue 中，n-upload 的 action 属性直接指向了后端的上传接口 /api/v1/user/avatar。您需要确保后端有这个接口。
 }

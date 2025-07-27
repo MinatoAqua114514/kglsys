@@ -1,6 +1,7 @@
 package com.lin.kglsys.infra.repository;
 
 import com.lin.kglsys.domain.entity.UserLearningProgress;
+import com.lin.kglsys.domain.valobj.UserLearningProgressStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -27,4 +28,17 @@ public interface UserLearningProgressRepository extends JpaRepository<UserLearni
      */
     @Query("SELECT p FROM UserLearningProgress p WHERE p.user.id = :userId AND p.pathNode.path.id = :pathId")
     List<UserLearningProgress> findUserProgressForPath(Long userId, Long pathId);
+
+    /**
+     * 查找指定用户在特定学习路径下，第一个状态不是 MASTERED 的节点。
+     * 按 sequence 排序来确保是“下一个”节点。
+     * @param userId 用户ID
+     * @param pathId 学习路径ID
+     * @param status 要排除的状态
+     * @return 第一个未完成的节点进度记录
+     */
+    @Query("SELECT p FROM UserLearningProgress p JOIN FETCH p.pathNode pn " +
+            "WHERE p.user.id = :userId AND pn.path.id = :pathId AND p.status <> :status " +
+            "ORDER BY pn.sequence ASC")
+    List<UserLearningProgress> findFirstIncompleteProgress(Long userId, Long pathId, UserLearningProgressStatus status);
 }
