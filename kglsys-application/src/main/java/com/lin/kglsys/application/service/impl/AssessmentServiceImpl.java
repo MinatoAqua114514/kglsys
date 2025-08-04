@@ -3,11 +3,9 @@ package com.lin.kglsys.application.service.impl;
 import com.lin.kglsys.application.mapper.AssessmentMapper;
 import com.lin.kglsys.application.mapper.PositionMapper;
 import com.lin.kglsys.application.service.AssessmentService;
-import com.lin.kglsys.common.exception.business.InvalidParameterException;
 import com.lin.kglsys.common.exception.business.UserNotFoundException;
 import com.lin.kglsys.common.utils.UserContextHolder;
 import com.lin.kglsys.domain.entity.*;
-import com.lin.kglsys.domain.valobj.UserTargetSource;
 import com.lin.kglsys.dto.request.AnswerDTO;
 import com.lin.kglsys.dto.request.AssessmentSubmissionRequest;
 import com.lin.kglsys.dto.response.QuestionDTO;
@@ -24,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service

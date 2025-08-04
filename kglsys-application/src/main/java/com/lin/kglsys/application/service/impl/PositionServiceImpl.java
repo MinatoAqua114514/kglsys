@@ -2,7 +2,6 @@ package com.lin.kglsys.application.service.impl;
 
 import com.lin.kglsys.application.mapper.PositionMapper;
 import com.lin.kglsys.application.service.PositionService;
-import com.lin.kglsys.common.exception.business.InvalidParameterException;
 import com.lin.kglsys.common.exception.business.ResourceNotFoundException;
 import com.lin.kglsys.common.exception.business.UserNotFoundException;
 import com.lin.kglsys.common.utils.UserContextHolder;
