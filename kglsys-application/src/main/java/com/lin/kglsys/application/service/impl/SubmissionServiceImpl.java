@@ -111,10 +111,17 @@ public class SubmissionServiceImpl implements SubmissionService {
         Long submissionId = Long.parseLong(resultDTO.getSubmissionId());
 
         // 1. 从数据库查找并更新 Submission 记录
-        Submission submission = submissionRepository.findById(submissionId)
+        Submission submission = submissionRepository.findByIdWithUserAndRoles(submissionId)
                 .orElseThrow(() -> new SubmissionNotFoundException(ResultCode.SUBMISSION_NOT_FOUND));
 
-        SubmissionStatus status = SubmissionStatus.valueOf(resultDTO.getStatus());
+        SubmissionStatus status;
+        try {
+            status = SubmissionStatus.valueOf(resultDTO.getStatus().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Received unknown submission status '{}' for submissionId: {}. Defaulting to SYSTEM_ERROR.", resultDTO.getStatus(), submissionId);
+            status = SubmissionStatus.SYSTEM_ERROR; // Default to a known error state
+        }
+
         submission.setStatus(status);
         submission.setExecutionTimeMs(resultDTO.getExecutionTimeMs());
         submission.setMemoryUsedKb(resultDTO.getMemoryUsedKb());
@@ -133,10 +140,12 @@ public class SubmissionServiceImpl implements SubmissionService {
         log.info("Updated submission {} in DB and Redis with status: {}", submissionId, status);
 
         // 3. 通过 WebSocket 推送结果给指定用户
-        Long userId = submission.getUser().getId();
-        String destination = "/user/" + userId + "/queue/submission-updates";
+        User user = submission.getUser();
+        String username = user.getEmail(); // The username is the user's email
+        String destination = "/queue/submission-updates";
 
-        messagingTemplate.convertAndSend(destination, resultDTO);
-        log.info("Sent WebSocket update for submission {} to destination: {}", submissionId, destination);
+        // The first argument to convertAndSendToUser should be the username (principal name), not the user ID.
+        messagingTemplate.convertAndSendToUser(username, destination, resultDTO);
+        log.info("Sending WebSocket update for submission {} to user '{}' at destination '{}'", submissionId, username, destination);
     }
 }

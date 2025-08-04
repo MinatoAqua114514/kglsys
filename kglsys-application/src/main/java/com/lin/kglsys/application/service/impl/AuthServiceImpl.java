@@ -229,15 +229,26 @@ public class AuthServiceImpl implements AuthService {
         Random random = new Random();
         int code = random.nextInt(9000) + 1000;
 
-        // 5. 准备发送到消息队列的数据
-        Map<String, Object> data = Map.of("type", type, "email", email, "code", code);
-
-        // 6. 将邮件任务发送到RabbitMQ
-        amqpTemplate.convertAndSend(MailConstants.MQ_EMAIL_QUEUE, data);
-
-        // 7. 将验证码存入Redis，有效期3分钟
+        // 5. 将验证码存入Redis，有效期3分钟
         String dataKey = MailConstants.EMAIL_VERIFY_DATA + email;
         stringRedisTemplate.opsForValue().set(dataKey, String.valueOf(code), 3, TimeUnit.MINUTES);
+
+        // 6. 将IP地址存入Redis作为限流标记，有效期60秒
+        stringRedisTemplate.opsForValue().set(ipKey, "locked", 60, TimeUnit.SECONDS);
+
+        // 7. 只有在所有Redis操作成功后，才发送邮件任务到RabbitMQ
+        try {
+            Map<String, Object> data = Map.of("type", type, "email", email, "code", code);
+            amqpTemplate.convertAndSend(MailConstants.MQ_EMAIL_QUEUE, data);
+        } catch (Exception e) {
+            // 如果消息队列发送失败，这是一个严重问题，需要记录并可能需要回滚Redis操作（尽管在此场景下影响较小）
+            log.error("发送邮件任务到RabbitMQ失败，但Redis数据已写入。Email: {}", email, e);
+            // 为了保持一致性，可以选择删除刚刚写入的Redis键
+            stringRedisTemplate.delete(dataKey);
+            stringRedisTemplate.delete(ipKey);
+            // 重新抛出异常，让全局异常处理器捕获
+            throw e;
+        }
 
         // 8. 【新增】将IP地址存入Redis作为限流标记，有效期60秒
         stringRedisTemplate.opsForValue().set(ipKey, "locked", 60, TimeUnit.SECONDS);

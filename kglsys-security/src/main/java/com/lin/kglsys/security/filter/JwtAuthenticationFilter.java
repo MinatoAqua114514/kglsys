@@ -53,17 +53,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception ex) {
             log.error("无法在安全上下文中设置用户认证", ex);
+        }
+
+        try {
+            filterChain.doFilter(request, response);
         } finally {
-            // [新增] 在请求结束时清理ThreadLocal，防止内存泄漏
-            if (isAsyncDispatch(request)) {
-                filterChain.doFilter(request, response);
-            } else {
-                try {
-                    filterChain.doFilter(request, response);
-                } finally {
-                    UserContextHolder.clear();
-                }
-            }
+            // Crucially, clear the context AFTER the rest of the chain has completed.
+            UserContextHolder.clear();
         }
     }
 
@@ -96,7 +92,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 log.error("无法在安全上下文中设置用户认证", ex);
             }
         } finally {
-            UserContextHolder.clear();
+            if (!isAsyncDispatch(request)) {
+                UserContextHolder.clear();
+            }
         }
     }
 

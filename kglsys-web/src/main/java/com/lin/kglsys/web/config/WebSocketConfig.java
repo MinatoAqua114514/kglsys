@@ -15,7 +15,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // 注册一个STOMP端点，客户端将使用它来连接。
         // "/ws" 是连接的端点URL。
         // withSockJS() 是为不支持WebSocket的浏览器提供备用选项。
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
+        registry.addEndpoint("/api/v1/ws").setAllowedOriginPatterns("*").withSockJS();
     }
 
     @Override

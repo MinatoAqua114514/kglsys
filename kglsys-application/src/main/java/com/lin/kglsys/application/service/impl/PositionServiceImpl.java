@@ -6,15 +6,11 @@ import com.lin.kglsys.common.exception.business.InvalidParameterException;
 import com.lin.kglsys.common.exception.business.ResourceNotFoundException;
 import com.lin.kglsys.common.exception.business.UserNotFoundException;
 import com.lin.kglsys.common.utils.UserContextHolder;
-import com.lin.kglsys.domain.entity.Position;
-import com.lin.kglsys.domain.entity.User;
-import com.lin.kglsys.domain.entity.UserTargetPosition;
+import com.lin.kglsys.domain.entity.*;
 import com.lin.kglsys.domain.valobj.UserTargetSource;
 import com.lin.kglsys.dto.response.PositionDTO;
 import com.lin.kglsys.dto.response.RecommendedPositionDTO;
-import com.lin.kglsys.infra.repository.PositionRepository;
-import com.lin.kglsys.infra.repository.UserRepository;
-import com.lin.kglsys.infra.repository.UserTargetPositionRepository;
+import com.lin.kglsys.infra.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +28,8 @@ public class PositionServiceImpl implements PositionService {
     private final UserTargetPositionRepository userTargetPositionRepository;
     private final UserRepository userRepository;
     private final PositionMapper positionMapper;
+    private final UserLearningStatusRepository userLearningStatusRepository;
+    private final LearningPathRepository learningPathRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -61,25 +59,37 @@ public class PositionServiceImpl implements PositionService {
         Long userId = UserContextHolder.getUserId();
         if (userId == null) throw new UserNotFoundException();
 
-        // 增加存在性检查
-        Optional<UserTargetPosition> existingTarget = userTargetPositionRepository.findByUserIdAndPositionId(userId, positionId);
-        if (existingTarget.isPresent()) {
-            // 如果已经存在，可以直接返回成功，或者抛出业务异常提示用户
-            throw new InvalidParameterException("您已选择该岗位作为目标，请勿重复添加。");
+        Position position = positionRepository.findById(positionId)
+                .orElseThrow(() -> new ResourceNotFoundException("要选择的职位不存在"));
+
+        List<UserTargetPosition> existingTargets = userTargetPositionRepository.findByUserId(userId);
+        if (!existingTargets.isEmpty()) {
+            userTargetPositionRepository.deleteAllInBatch(existingTargets);
         }
 
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Position position = positionRepository.findById(positionId)
-                .orElseThrow(() -> new ResourceNotFoundException("要选择的岗位不存在"));
+        UserTargetPosition newTarget = new UserTargetPosition();
+        newTarget.setUser(userRepository.getReferenceById(userId));
+        newTarget.setPosition(position);
+        newTarget.setSource(UserTargetSource.MANUAL);
+        newTarget.setCreatedAt(LocalDateTime.now());
+        userTargetPositionRepository.save(newTarget);
 
-        // 简单实现：直接添加。未来可优化为检查是否已存在。
-        UserTargetPosition target = new UserTargetPosition();
-        target.setUser(user);
-        target.setPosition(position);
-        target.setSource(UserTargetSource.MANUAL); // 标记为手动选择
-        target.setCreatedAt(LocalDateTime.now());
-        // 手动选择的岗位，匹配分可以为null
+        LearningPath defaultPath = learningPathRepository.findByPositionIdAndIsDefault(positionId, true)
+                .orElseThrow(() -> new ResourceNotFoundException("未找到此职位的标准学习路径。"));
 
-        userTargetPositionRepository.save(target);
+        Optional<UserLearningStatus> statusOptional = userLearningStatusRepository.findById(userId);
+
+        if (statusOptional.isPresent()) {
+            UserLearningStatus existingStatus = statusOptional.get();
+            existingStatus.setActivePath(defaultPath);
+            existingStatus.setUpdatedAt(LocalDateTime.now());
+            userLearningStatusRepository.save(existingStatus);
+        } else {
+            UserLearningStatus newStatus = new UserLearningStatus();
+            newStatus.setUser(userRepository.getReferenceById(userId));
+            newStatus.setActivePath(defaultPath);
+            newStatus.setUpdatedAt(LocalDateTime.now());
+            userLearningStatusRepository.save(newStatus);
+        }
     }
 }

@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     /**
@@ -17,4 +19,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
      */
     @Query("SELECT COUNT(DISTINCT s.problem.id) FROM Submission s WHERE s.user.id = :userId AND s.status = :status")
     long countDistinctProblemsByUserIdAndStatus(Long userId, SubmissionStatus status);
+
+    @Query("SELECT s FROM Submission s JOIN FETCH s.user u JOIN FETCH u.roles WHERE s.id = :submissionId")
+    Optional<Submission> findByIdWithUserAndRoles(Long submissionId); // Umbenannt für Klarheit
 }

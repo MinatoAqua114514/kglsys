@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -56,27 +57,39 @@ public class AssessmentServiceImpl implements AssessmentService {
         Long userId = UserContextHolder.getUserId();
         if (userId == null) throw new UserNotFoundException();
 
-        String lockKey = ASSESSMENT_SUBMIT_LOCK_PREFIX + userId;
-        if (stringRedisTemplate.hasKey(lockKey)) {
-            throw new InvalidParameterException("您提交得太频繁了，请稍后再试。");
-        }
-
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
-        List<UserAssessmentAnswer> answers = request.getAnswers().stream()
-                .map(answerDTO -> convertToAnswerEntity(user, answerDTO))
-                .collect(Collectors.toList());
-        answerRepository.saveAll(answers);
+        // 1. 查找现有答案并将其按问题ID进行映射以快速访问。
+        List<UserAssessmentAnswer> existingAnswers = answerRepository.findByUserId(userId);
+        Map<Integer, UserAssessmentAnswer> answerMap = existingAnswers.stream()
+                .collect(Collectors.toMap(answer -> answer.getQuestion().getId(), answer -> answer));
 
-        // [新增] 计算并保存推荐结果
-        List<RecommendedPositionDTO> recommendations = calculateAndSaveRecommendations(user, request.getAnswers());
+        List<UserAssessmentAnswer> answersToSave = new ArrayList<>();
 
-        stringRedisTemplate.opsForValue().set(lockKey, "locked", LOCK_DURATION_MINUTES, TimeUnit.MINUTES);
+        // 2. 遍历请求的新回复
+        for (AnswerDTO answerDTO : request.getAnswers()) {
+            UserAssessmentAnswer answerToUpdate = answerMap.get(answerDTO.getQuestionId());
 
-        return recommendations;
+            if (answerToUpdate != null) {
+                // 3a. 如果答案已经存在，更新它。
+                QuestionOption newSelectedOption = new QuestionOption();
+                newSelectedOption.setId(answerDTO.getSelectedOptionId());
+                answerToUpdate.setSelectedOption(newSelectedOption);
+                answerToUpdate.setCreatedAt(LocalDateTime.now()); // Atualizar o timestamp da resposta
+                answersToSave.add(answerToUpdate);
+            } else {
+                // 3b. 如果不存在答案（边界情况），则创建一个新的。
+                answersToSave.add(convertToAnswerEntity(user, answerDTO));
+            }
+        }
+
+        // 4. 保存所有更新或新的实体
+        answerRepository.saveAll(answersToSave);
+
+        return calculateRecommendations(request.getAnswers());
     }
 
-    private List<RecommendedPositionDTO> calculateAndSaveRecommendations(User user, List<AnswerDTO> answers) {
+    private List<RecommendedPositionDTO> calculateRecommendations(List<AnswerDTO> answers) {
         // 1. 提取所有选择的选项ID
         List<Integer> selectedOptionIds = answers.stream()
                 .map(AnswerDTO::getSelectedOptionId)
@@ -98,25 +111,10 @@ public class AssessmentServiceImpl implements AssessmentService {
                 .limit(RECOMMENDATION_COUNT)
                 .toList();
 
-        // 5. 清理旧的、由测评生成的推荐结果
-        userTargetPositionRepository.deleteByUserIdAndSource(user.getId(), UserTargetSource.ASSESSMENT);
-
-        // 6. 构建新的UserTargetPosition实体并保存
-        List<UserTargetPosition> newTargets = topPositions.stream().map(entry -> {
-            UserTargetPosition target = new UserTargetPosition();
-            target.setUser(user);
-            target.setPosition(entry.getKey());
-            target.setMatchScore(entry.getValue());
-            target.setSource(UserTargetSource.ASSESSMENT);
-            target.setCreatedAt(LocalDateTime.now());
-            return target;
-        }).toList();
-        userTargetPositionRepository.saveAll(newTargets);
-
-        // 7. 转换为DTO返回给前端
-        return newTargets.stream().map(target -> {
-            RecommendedPositionDTO dto = positionMapper.toRecommendedPositionDTO(target.getPosition());
-            dto.setMatchScore(target.getMatchScore());
+        // 5. 转换为DTO返回给前端
+        return topPositions.stream().map(entry -> {
+            RecommendedPositionDTO dto = positionMapper.toRecommendedPositionDTO(entry.getKey());
+            dto.setMatchScore(entry.getValue());
             return dto;
         }).collect(Collectors.toList());
     }

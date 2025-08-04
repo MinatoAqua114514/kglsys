@@ -58,7 +58,7 @@ spring:
   # DATABASE (MySQL)
   # ===============================================================
   datasource:
-    url: "jdbc:mysql://localhost:3306/kglsys1?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai"
+    url: "jdbc:mysql://localhost:3306/kglsys?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai"
     username: root
     password: "111111"
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -88,8 +88,8 @@ spring:
   # ===============================================================
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: 192.168.140.128
+      port: 6380
       database: 0
       # 如果你的Redis没有密码，请注释掉下面这行
       # password: your-redis-password
@@ -98,7 +98,7 @@ spring:
   # MESSAGE QUEUE (RabbitMQ)
   # ===============================================================
   rabbitmq:
-    host: localhost
+    host: 192.168.140.128
     port: 5672
     username: guest
     password: guest

@@ -2,25 +2,23 @@ package com.lin.kglsys.application.service.impl;
 
 import com.lin.kglsys.application.mapper.LearningPathMapper;
 import com.lin.kglsys.application.service.LearningPathService;
+import com.lin.kglsys.common.exception.business.PermissionDeniedException;
 import com.lin.kglsys.common.exception.business.ResourceNotFoundException;
 import com.lin.kglsys.common.exception.business.UserNotFoundException;
 import com.lin.kglsys.domain.entity.*;
 import com.lin.kglsys.domain.valobj.UserLearningProgressStatus;
 import com.lin.kglsys.dto.response.LearningPathDTO;
 import com.lin.kglsys.dto.response.graph.KnowledgeGraphDTO;
-import com.lin.kglsys.infra.repository.KgRelationshipRepository;
-import com.lin.kglsys.infra.repository.LearningPathNodeRepository;
-import com.lin.kglsys.infra.repository.LearningPathRepository;
-import com.lin.kglsys.infra.repository.PathNodeEntityRepository;
+import com.lin.kglsys.infra.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.lin.kglsys.common.utils.UserContextHolder;
 import com.lin.kglsys.dto.response.LearningPathNodeDTO;
-import com.lin.kglsys.infra.repository.UserLearningProgressRepository;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.Map;
 
@@ -34,6 +32,7 @@ public class LearningPathServiceImpl implements LearningPathService {
     private final KgRelationshipRepository kgRelationshipRepository;
     private final UserLearningProgressRepository progressRepository;
     private final LearningPathMapper learningPathMapper;
+    private final UserLearningStatusRepository userLearningStatusRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -41,21 +40,37 @@ public class LearningPathServiceImpl implements LearningPathService {
         Long userId = UserContextHolder.getUserId();
         if (userId == null) throw new UserNotFoundException();
 
+        // --- 新验证授权 ---
+        // 1. 获取用户的学习状态以找到您的真实目标职位。
+        UserLearningStatus learningStatus = userLearningStatusRepository.findByIdWithDetails(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Status de aprendizagem do usuário não encontrado."));
+
+        // 2. 验证用户是否有一个活跃的目标职位。
+        if (learningStatus.getActivePath() == null || learningStatus.getActivePath().getPosition() == null) {
+            throw new PermissionDeniedException(); // Ou uma exceção de negócio mais específica.
+        }
+
+        // 3. 比较请求的职位ID与用户实际目标职位ID
+        Integer actualTargetPositionId = learningStatus.getActivePath().getPosition().getId();
+        if (!Objects.equals(positionId, actualTargetPositionId)) {
+            // 如果不匹配，拒绝访问。
+            throw new PermissionDeniedException();
+        }
+        // --- 授权验证结束 ---
+
+        // 后续逻辑只有在授权验证通过的情况下才会执行。
         LearningPath path = learningPathRepository.findByPositionIdAndIsDefault(positionId, true)
-                .orElseThrow(() -> new ResourceNotFoundException("该岗位暂无默认学习路径"));
+                .orElseThrow(() -> new ResourceNotFoundException("Nenhuma trilha de aprendizagem padrão encontrada para este cargo"));
 
         List<LearningPathNode> nodes = learningPathNodeRepository.findByPathIdOrderBySequenceAsc(path.getId());
 
-        // [新增] 获取用户在该路径上的所有进度记录，并转为Map以便快速查找
         Map<Long, UserLearningProgressStatus> progressMap = progressRepository.findUserProgressForPath(userId, path.getId())
                 .stream()
                 .collect(Collectors.toMap(p -> p.getPathNode().getId(), UserLearningProgress::getStatus));
 
-        // [修改] 组装DTO，并为每个节点设置学习状态
         LearningPathDTO pathDTO = learningPathMapper.toLearningPathDTO(path);
         List<LearningPathNodeDTO> nodeDTOs = nodes.stream().map(node -> {
             LearningPathNodeDTO nodeDTO = learningPathMapper.toLearningPathNodeDTO(node);
-            // 从Map中获取状态，如果不存在则默认为 NOT_STARTED
             nodeDTO.setStatus(progressMap.getOrDefault(node.getId(), UserLearningProgressStatus.NOT_STARTED));
             return nodeDTO;
         }).collect(Collectors.toList());
