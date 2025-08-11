@@ -58,9 +58,9 @@ spring:
   # DATABASE (MySQL)
   # ===============================================================
   datasource:
-    url: "jdbc:mysql://localhost:3306/kglsys?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai"
-    username: root
-    password: "111111"
+    url: "jdbc:mysql://192.168.134.128:3306/KGLSys?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai"
+    username: lin
+    password: "N3w$tr0ngP@ss!"
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # ===============================================================
@@ -76,11 +76,11 @@ spring:
       #   - create-drop: 启动时创建，关闭时删除 (测试常用)
       ddl-auto: validate
     # 在控制台显示执行的SQL语句，便于开发调试
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         # 格式化显示的SQL语句
-        format_sql: true
+        format_sql: false
     open-in-view: false
 
   # ===============================================================
@@ -88,7 +88,7 @@ spring:
   # ===============================================================
   data:
     redis:
-      host: 192.168.140.128
+      host: 192.168.134.128
       port: 6380
       database: 0
       # 如果你的Redis没有密码，请注释掉下面这行
@@ -98,7 +98,7 @@ spring:
   # MESSAGE QUEUE (RabbitMQ)
   # ===============================================================
   rabbitmq:
-    host: 192.168.140.128
+    host: 192.168.134.128
     port: 5672
     username: guest
     password: guest

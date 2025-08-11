@@ -46,6 +46,13 @@ public class MailQueueListener {
                 );
                 yield createMessage("密码重置请求", content, email);
             }
+            case "admin_reset" -> {
+                String content = String.format(
+                        "您好，\n\n您的账户密码已被管理员重置。您的新临时密码是: %s\n\n请立即使用此密码登录并修改您的密码，以确保账户安全。",
+                        codeOrToken
+                );
+                yield createMessage("账户密码重置通知", content, email);
+            }
             default -> null;
         };
         if (message!=null) {
