@@ -18,4 +18,18 @@ public interface OptionPositionTendencyRepository extends JpaRepository<OptionPo
      */
     @Query("SELECT opt FROM OptionPositionTendency opt JOIN FETCH opt.position WHERE opt.option.id IN :optionIds")
     List<OptionPositionTendency> findByOptionIdInWithDetails(List<Integer> optionIds);
+
+    /**
+     * 根据选项ID查找所有相关的岗位倾向记录，并预加载岗位信息。
+     * @param optionId 选项ID
+     * @return 岗位倾向列表
+     */
+    @Query("SELECT opt FROM OptionPositionTendency opt JOIN FETCH opt.position WHERE opt.option.id = :optionId")
+    List<OptionPositionTendency> findByOptionIdWithDetails(Integer optionId);
+
+    /**
+     * 根据选项ID删除所有相关的岗位倾向记录。
+     * @param optionId 选项ID
+     */
+    void deleteByOptionId(Integer optionId);
 }
