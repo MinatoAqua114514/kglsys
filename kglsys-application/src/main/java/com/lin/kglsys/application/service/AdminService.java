@@ -1,6 +1,7 @@
 package com.lin.kglsys.application.service;
 
 import com.lin.kglsys.dto.request.UpdateUserProfileRequest;
+import com.lin.kglsys.dto.response.AdminUserAnswerViewDTO;
 import com.lin.kglsys.dto.response.AdminUserViewDTO;
 import com.lin.kglsys.dto.response.UserProfileResponse;
 import org.springframework.data.domain.Page;
@@ -44,4 +45,13 @@ public interface AdminService {
      * @return 更新后的用户个人资料DTO
      */
     UserProfileResponse updateUserProfileById(Long userId, UpdateUserProfileRequest request);
+
+    /**
+     * 分页并按条件搜索用户答卷记录
+     * @param pageable 分页参数
+     * @param userEmail 可选的用户邮箱过滤条件
+     * @param questionText 可选的题干内容过滤条件
+     * @return 分页的用户答卷视图DTO
+     */
+    Page<AdminUserAnswerViewDTO> listUserAnswers(Pageable pageable, String userEmail, String questionText);
 }

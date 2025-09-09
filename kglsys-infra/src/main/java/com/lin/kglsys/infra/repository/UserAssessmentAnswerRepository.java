@@ -2,12 +2,14 @@ package com.lin.kglsys.infra.repository;
 
 import com.lin.kglsys.domain.entity.UserAssessmentAnswer;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface UserAssessmentAnswerRepository extends JpaRepository<UserAssessmentAnswer, Long> {
+public interface UserAssessmentAnswerRepository extends JpaRepository<UserAssessmentAnswer, Long>,
+        JpaSpecificationExecutor<UserAssessmentAnswer>{
 
     List<UserAssessmentAnswer> findByUserId(Long userId);
 

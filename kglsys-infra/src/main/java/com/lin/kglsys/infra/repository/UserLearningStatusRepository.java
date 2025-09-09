@@ -2,13 +2,15 @@ package com.lin.kglsys.infra.repository;
 
 import com.lin.kglsys.domain.entity.UserLearningStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserLearningStatusRepository extends JpaRepository<UserLearningStatus, Long> {
+public interface UserLearningStatusRepository extends JpaRepository<UserLearningStatus, Long>,
+        JpaSpecificationExecutor<UserLearningStatus> {
 
     /**
      * 根据用户ID查找其学习状态，并立即加载关联的激活路径及其岗位信息。

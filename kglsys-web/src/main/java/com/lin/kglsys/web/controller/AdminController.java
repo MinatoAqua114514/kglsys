@@ -4,12 +4,14 @@ import com.lin.kglsys.application.service.AdminService;
 import com.lin.kglsys.common.response.ApiResult;
 import com.lin.kglsys.dto.request.UpdateUserProfileRequest;
 import com.lin.kglsys.dto.request.UpdateUserStatusRequest;
+import com.lin.kglsys.dto.response.AdminUserAnswerViewDTO;
 import com.lin.kglsys.dto.response.AdminUserViewDTO;
 import com.lin.kglsys.dto.response.UserProfileResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
@@ -84,5 +86,21 @@ public class AdminController {
             @Valid @RequestBody UpdateUserProfileRequest request) {
         UserProfileResponse updatedProfile = adminService.updateUserProfileById(userId, request);
         return ApiResult.success(updatedProfile);
+    }
+
+    /**
+     * 获取用户答卷列表（分页、可搜索）
+     * @param pageable 分页参数 (e.g., ?page=0&size=10&sort=createdAt,desc)
+     * @param userEmail (可选) 按用户邮箱模糊查询
+     * @param questionText (可选) 按题干内容模糊查询
+     * @return 分页的用户答卷信息
+     */
+    @GetMapping("/assessment-answers")
+    public ApiResult<Page<AdminUserAnswerViewDTO>> getAssessmentAnswers(
+            @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) String userEmail,
+            @RequestParam(required = false) String questionText) {
+        Page<AdminUserAnswerViewDTO> answerPage = adminService.listUserAnswers(pageable, userEmail, questionText);
+        return ApiResult.success(answerPage);
     }
 }

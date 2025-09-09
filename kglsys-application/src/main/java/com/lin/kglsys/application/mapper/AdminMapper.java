@@ -2,6 +2,8 @@ package com.lin.kglsys.application.mapper;
 
 import com.lin.kglsys.domain.entity.Role;
 import com.lin.kglsys.domain.entity.User;
+import com.lin.kglsys.domain.entity.UserAssessmentAnswer;
+import com.lin.kglsys.dto.response.AdminUserAnswerViewDTO;
 import com.lin.kglsys.dto.response.AdminUserViewDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -27,4 +29,13 @@ public interface AdminMapper {
         }
         return roles.stream().map(Role::getName).collect(Collectors.toSet());
     }
+
+    @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "user.email", target = "userEmail")
+    @Mapping(source = "user.userProfile.nickname", target = "userNickname")
+    @Mapping(source = "question.id", target = "questionId")
+    @Mapping(source = "question.questionText", target = "questionText")
+    @Mapping(source = "selectedOption.id", target = "selectedOptionId")
+    @Mapping(source = "selectedOption.optionText", target = "selectedOptionText")
+    AdminUserAnswerViewDTO toAdminUserAnswerViewDTO(UserAssessmentAnswer answer);
 }

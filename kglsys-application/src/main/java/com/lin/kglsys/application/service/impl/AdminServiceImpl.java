@@ -8,13 +8,17 @@ import com.lin.kglsys.common.exception.business.DuplicateUsernameException;
 import com.lin.kglsys.common.exception.business.InvalidParameterException;
 import com.lin.kglsys.common.exception.business.UserNotFoundException;
 import com.lin.kglsys.domain.entity.User;
+import com.lin.kglsys.domain.entity.UserAssessmentAnswer;
 import com.lin.kglsys.domain.entity.UserProfile;
 import com.lin.kglsys.domain.valobj.UserRole;
 import com.lin.kglsys.dto.request.UpdateUserProfileRequest;
+import com.lin.kglsys.dto.response.AdminUserAnswerViewDTO;
 import com.lin.kglsys.dto.response.AdminUserViewDTO;
 import com.lin.kglsys.dto.response.UserProfileResponse;
+import com.lin.kglsys.infra.repository.UserAssessmentAnswerRepository;
 import com.lin.kglsys.infra.repository.UserProfileRepository;
 import com.lin.kglsys.infra.repository.UserRepository;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -38,6 +42,7 @@ public class AdminServiceImpl implements AdminService {
 
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final UserAssessmentAnswerRepository userAnswerRepository;
     private final AdminMapper adminMapper;
     private final UserProfileMapper userProfileMapper;
     private final PasswordEncoder passwordEncoder;
@@ -145,5 +150,30 @@ public class AdminServiceImpl implements AdminService {
                         throw new DuplicateUsernameException();
                     }
                 });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<AdminUserAnswerViewDTO> listUserAnswers(Pageable pageable, String userEmail, String questionText) {
+        Specification<UserAssessmentAnswer> spec = (root, query, cb) -> {
+            // 优化：在构建查询时，立即获取关联数据，防止N+1问题
+            if (query.getResultType() != Long.class) {
+                root.fetch("user", JoinType.LEFT).fetch("userProfile", JoinType.LEFT);
+                root.fetch("question", JoinType.LEFT);
+                root.fetch("selectedOption", JoinType.LEFT);
+            }
+
+            List<Predicate> predicates = new ArrayList<>();
+            if (StringUtils.hasText(userEmail)) {
+                predicates.add(cb.like(root.get("user").get("email"), "%" + userEmail + "%"));
+            }
+            if (StringUtils.hasText(questionText)) {
+                predicates.add(cb.like(root.get("question").get("questionText"), "%" + questionText + "%"));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<UserAssessmentAnswer> answerPage = userAnswerRepository.findAll(spec, pageable);
+        return answerPage.map(adminMapper::toAdminUserAnswerViewDTO);
     }
 }
