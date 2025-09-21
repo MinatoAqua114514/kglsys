@@ -117,8 +117,8 @@ public class AuthServiceImpl implements AuthService {
         // 7. 注册成功后，删除验证码
         stringRedisTemplate.delete(key);
 
-        // 8. 返回包含token的响应
-        return new JwtResponse(token);
+        // 8. 返回包含token和角色的响应
+        return new JwtResponse(token, request.getRole());
     }
 
     /**
@@ -144,8 +144,9 @@ public class AuthServiceImpl implements AuthService {
         // 4. 生成JWT
         String token = jwtTokenProvider.generateToken(user);
 
-        // 5. 返回响应
-        return new JwtResponse(token);
+        // 5. 解析并返回主角色
+        UserRole role = resolvePrimaryRole(user);
+        return new JwtResponse(token, role);
     }
 
     /**
@@ -280,4 +281,19 @@ public class AuthServiceImpl implements AuthService {
         }
         return "unknown";
     }
+
+    /**
+     * 解析用户的主角色：ADMIN > TEACHER > STUDENT
+     */
+    private UserRole resolvePrimaryRole(User user) {
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            return UserRole.STUDENT; // 默认回退
+        }
+        boolean isAdmin = user.getRoles().stream().anyMatch(r -> "ADMIN".equalsIgnoreCase(r.getName()));
+        if (isAdmin) return UserRole.ADMIN;
+        boolean isTeacher = user.getRoles().stream().anyMatch(r -> "TEACHER".equalsIgnoreCase(r.getName()));
+        if (isTeacher) return UserRole.TEACHER;
+        return UserRole.STUDENT;
+    }
 }
+

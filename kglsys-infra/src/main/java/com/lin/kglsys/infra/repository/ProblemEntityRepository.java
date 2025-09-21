@@ -2,6 +2,7 @@ package com.lin.kglsys.infra.repository;
 
 import com.lin.kglsys.domain.entity.ProblemEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -17,4 +18,10 @@ public interface ProblemEntityRepository extends JpaRepository<ProblemEntity, Lo
      */
     @Query("SELECT pe FROM ProblemEntity pe JOIN FETCH pe.problem WHERE pe.entity.id = :entityId")
     List<ProblemEntity> findByEntityIdWithProblems(Long entityId);
+
+    @Modifying
+    @Query("DELETE FROM ProblemEntity pe WHERE pe.entity.id = :entityId")
+    void deleteByEntityId(Long entityId);
+
+    boolean existsByProblemId(Long problemId);
 }

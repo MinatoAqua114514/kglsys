@@ -19,6 +19,13 @@ public class AdminPositionController {
 
     private final AdminPositionService adminPositionService;
 
+    /**
+     * 列出所有职位，支持分页和按关键字搜索
+     *
+     * @param pageable 分页参数
+     * @param keyword  搜索关键字
+     * @return 职位分页列表
+     */
     @GetMapping
     public ApiResult<Page<PositionDTO>> listPositions(
             @PageableDefault(sort = "id") Pageable pageable,
@@ -26,6 +33,12 @@ public class AdminPositionController {
         return ApiResult.success(adminPositionService.listPositions(pageable, keyword));
     }
 
+    /**
+     * 根据ID获取职位详情
+     *
+     * @param id 职位ID
+     * @return 职位详情
+     */
     @GetMapping("/{id}")
     public ApiResult<PositionDTO> getPosition(@PathVariable Integer id) {
         return ApiResult.success(adminPositionService.getPositionById(id));
