@@ -12,7 +12,6 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-import java.util.Collections;
 import java.util.List;
 
 @Mapper(componentModel = "spring", uses = ObjectMapper.class)

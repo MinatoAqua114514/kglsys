@@ -2,7 +2,6 @@ package com.lin.kglsys.application.service.impl;
 
 import com.lin.kglsys.application.mapper.LearningPathMapper;
 import com.lin.kglsys.application.service.AdminLearningPathNodeService;
-import com.lin.kglsys.common.exception.business.InvalidParameterException;
 import com.lin.kglsys.common.exception.business.ResourceNotFoundException;
 import com.lin.kglsys.domain.entity.LearningPath;
 import com.lin.kglsys.domain.entity.LearningPathNode;
